@@ -4,9 +4,11 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
-#include "construirProducciones.cpp"
 #include "update.cpp"
+#include "construirProducciones.cpp"
 #include "existeEpsilon.cpp"
+#include "firstOfString.cpp"
+#include "union.cpp"
 
 using namespace std;
 
@@ -25,6 +27,7 @@ int main()
     {
         map<char, vector<string>> gramatica;
         map<char, vector<char>> firsts;
+        map<char, vector<char>> follows;
 
         for (int j = 0; j < m; j++)
         {
@@ -39,6 +42,7 @@ int main()
 
             gramatica[noTerminal[0]] = producciones_;
             firsts[noTerminal[0]] = vector<char>();
+            follows[noTerminal[0]] = vector<char>();
         }
 
         // Implementacion del algoritmo para calcular los firsts
@@ -60,7 +64,7 @@ int main()
 
                         if (!isupper(par.second[i][j]))
                         {
-                            if (std::find(firsts[par.first].begin(), firsts[par.first].end(), par.second[i][j]) == firsts[par.first].end())
+                            if (find(firsts[par.first].begin(), firsts[par.first].end(), par.second[i][j]) == firsts[par.first].end())
                             {
                                 // Solo agregar el carácter si no está ya presente
                                 firsts[par.first].push_back(par.second[i][j]);
@@ -89,12 +93,11 @@ int main()
 
                                 if (j + 1 == par.second[i].length())
                                 {
-                                    if (std::find(firsts[par.first].begin(), firsts[par.first].end(), 'e') == firsts[par.first].end())
+                                    if (find(firsts[par.first].begin(), firsts[par.first].end(), 'e') == firsts[par.first].end())
                                     {
                                         firsts[par.first].push_back('e');
                                         changes = true;
                                     }
-
                                 }
                             }
                         }
@@ -103,16 +106,91 @@ int main()
             }
         }
 
-        // Impresion de los cambios
+        // Calculando el first de cada producción
+
+        for (const auto &par : gramatica)
+        {
+            for (int j = 0; j < par.second.size(); j++)
+            {
+
+                vector<char> firstOfTheString = firstOfString(par.second[j], firsts);
+
+                cout << "firstString(" << par.second[j] << ") = {";
+
+                for (int y = 0; y < firstOfTheString.size(); y++)
+                {
+                    cout << " " << firstOfTheString[y];
+                }
+
+                cout << "}" << endl;
+            }
+        }
+
+        // Implementacion del algoritmo para calcular los follows
+
+        bool changes2 = true;
+
+        follows['S'].push_back('$');
+
+        while (changes2)
+        {
+            changes2 = false;
+
+            for (const auto &par : gramatica)
+            {
+                for (int i = 0; i < par.second.size(); i++)
+                {
+                    for (int j = 0; j < par.second[i].length(); j++)
+                    {
+                        if (isupper(par.second[i][j]))
+                        {
+
+                            if (j + 1 == par.second[i].length())
+                            {
+
+                                changes2 = setsUnion(follows[par.second[i][j]], follows[par.first]);
+                                break;
+                            }
+
+                            vector<char> beta = firstOfString(par.second[i].substr(j + 1), firsts);
+
+                            changes2 = update(follows[par.second[i][j]], beta);
+
+                            if (existeEpsilon(beta))
+                            {
+                                changes2 = setsUnion(follows[par.second[i][j]], follows[par.first]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Impresion de first
 
         for (const auto &par : firsts)
         {
 
-            cout << "first(" << par.first << "): { ";
+            cout << "first(" << par.first << "): {";
 
             for (int i = 0; i < par.second.size(); i++)
             {
-                cout << par.second[i] << " ";
+                cout << " " << par.second[i];
+            }
+
+            cout << " }" << endl;
+        }
+
+        // Impresion de follow
+
+        for (const auto &par : follows)
+        {
+
+            cout << "Follow(" << par.first << "): { ";
+
+            for (int x = 0; x < par.second.size(); x++)
+            {
+                cout << par.second[x] << " ";
             }
 
             cout << " }" << endl;

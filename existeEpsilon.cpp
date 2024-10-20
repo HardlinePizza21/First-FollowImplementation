@@ -1,4 +1,7 @@
+#include "existeEpsilon.h"
 #include <vector>
+
+// Verifica si un vector de caracteres esta epsilon(e)
 
 using namespace std;
 
