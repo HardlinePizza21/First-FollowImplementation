@@ -18,13 +18,14 @@ int main()
     int n;
     cin >> n; // Numero de casos
 
-    int m;
-    cin >> m; // Numero lineas de la gramatica
-
     // Lectura de la gramatica y creacion del diccionario que representa los first
 
-    for (int i = 0; i < n; i++)
+    for (int h = 0; h < n; h++)
     {
+
+        int m;
+        cin >> m; // Numero lineas de la gramatica
+
         map<char, vector<string>> gramatica;
         map<char, vector<char>> firsts;
         map<char, vector<char>> follows;
@@ -106,26 +107,6 @@ int main()
             }
         }
 
-        // Calculando el first de cada producción
-
-        for (const auto &par : gramatica)
-        {
-            for (int j = 0; j < par.second.size(); j++)
-            {
-
-                vector<char> firstOfTheString = firstOfString(par.second[j], firsts);
-
-                cout << "firstString(" << par.second[j] << ") = {";
-
-                for (int y = 0; y < firstOfTheString.size(); y++)
-                {
-                    cout << " " << firstOfTheString[y];
-                }
-
-                cout << "}" << endl;
-            }
-        }
-
         // Implementacion del algoritmo para calcular los follows
 
         bool changes2 = true;
@@ -147,18 +128,39 @@ int main()
 
                             if (j + 1 == par.second[i].length())
                             {
-
-                                changes2 = setsUnion(follows[par.second[i][j]], follows[par.first]);
+                                if (changes2)
+                                {
+                                    setsUnion(follows[par.second[i][j]], follows[par.first]);
+                                }
+                                else
+                                {
+                                    changes2 = setsUnion(follows[par.second[i][j]], follows[par.first]);
+                                }
                                 break;
                             }
 
                             vector<char> beta = firstOfString(par.second[i].substr(j + 1), firsts);
 
-                            changes2 = update(follows[par.second[i][j]], beta);
+                            if (changes2)
+                            {
+                                update(follows[par.second[i][j]], beta);
+                            }
+                            else
+                            {
+                                changes2 = update(follows[par.second[i][j]], beta);
+                            }
 
                             if (existeEpsilon(beta))
                             {
-                                changes2 = setsUnion(follows[par.second[i][j]], follows[par.first]);
+
+                                if (changes2)
+                                {
+                                    setsUnion(follows[par.second[i][j]], follows[par.first]);
+                                }
+                                else
+                                {
+                                    changes2 = setsUnion(follows[par.second[i][j]], follows[par.first]);
+                                }
                             }
                         }
                     }
@@ -171,14 +173,14 @@ int main()
         for (const auto &par : firsts)
         {
 
-            cout << "first(" << par.first << "): {";
+            cout << "First(" << par.first << ") = {" << par.second[0];
 
-            for (int i = 0; i < par.second.size(); i++)
+            for (int i = 1; i < par.second.size(); i++)
             {
-                cout << " " << par.second[i];
+                cout << "," << par.second[i];
             }
 
-            cout << " }" << endl;
+            cout << "}" << endl;
         }
 
         // Impresion de follow
@@ -186,14 +188,14 @@ int main()
         for (const auto &par : follows)
         {
 
-            cout << "Follow(" << par.first << "): { ";
+            cout << "Follow(" << par.first << ") = {" << par.second[0];
 
-            for (int x = 0; x < par.second.size(); x++)
+            for (int x = 1; x < par.second.size(); x++)
             {
-                cout << par.second[x] << " ";
+                cout << "," << par.second[x];
             }
 
-            cout << " }" << endl;
+            cout << "}" << endl;
         }
     }
     return 0;
@@ -220,3 +222,21 @@ int main()
 // S AB
 // A aA a
 // B bBc bc
+
+// 3
+// 3
+// S AB
+// A aA a
+// B bBc bc
+// 6
+// S AB ICF
+// A nA mA e
+// B BB p
+// I [
+// F ]
+// C C;C n
+// 4
+// A aaA e
+// B Bb e
+// C cCd S e
+// S ABC
